@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/LOGO.jpg",
+        "foregroundImage": "./assets/IconBG.png",
         "backgroundColor": "#e5e5dd"
       },
       "package": "com.blen_az.surepay",
@@ -26,6 +26,5 @@
     "web": {
       "favicon": "./assets/Icon.webp"
     }
-    
   }
 }

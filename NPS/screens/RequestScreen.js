@@ -32,7 +32,7 @@ const RequestScreen = ({ navigation }) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: undefined,
       });
       if (!result.canceled) {
         setScreenshot(result.assets[0].uri);
@@ -226,7 +226,8 @@ const RequestScreen = ({ navigation }) => {
 
 
         <View style={styles.uploadContainer}>
-          <TouchableOpacity
+        <Text style={[styles.infoText, {color: theme.text}]}>Upload a screenshot (Optional):</Text>
+          <TouchableOpacity          
             style={[styles.imagePickerButton, { backgroundColor: theme.primary }]}
             onPress={pickImage}
           >
@@ -293,7 +294,8 @@ const styles = StyleSheet.create({
       width: '100%',
       paddingVertical: 15,
     },
-  uploadContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  uploadContainer: { alignItems: 'center', marginBottom: 20 },
+  infoText: { fontSize: 20, marginBottom: 10, textAlign: 'center', },
   screenshot: { width: 60, height: 60, marginLeft: 15, borderRadius: 10 },
   button: { padding: 15, borderRadius: 25, width: '80%', alignItems: 'center' },
   buttonText: { color: 'white', fontSize: 18 },

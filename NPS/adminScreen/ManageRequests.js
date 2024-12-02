@@ -66,6 +66,9 @@ const ManageRequestsScreen = () => {
   const renderRequestItem = ({ item }) => (
     <View style={styles.requestItem}>
       <Text style={styles.requestText}>Name: {item.firstName} {item.lastName}</Text>
+      <Text style={styles.requestText}>Sex: {item.sex}</Text>
+      <Text style={styles.requestText}>Time: {new Date(item.time).toLocaleTimeString()}</Text>
+      <Text style={styles.requestText}>Birthdate: {new Date(item.birthdate).toDateString()}</Text>    
       <Text style={styles.requestText}>Type: {item.paymentType}</Text>
       <Text style={styles.requestText}>Social Media Link: {item.socialMediaLink || 'N/A'}</Text>
       <Text style={styles.requestText}>Notes: {item.notes || 'No Notes Provided'}</Text>

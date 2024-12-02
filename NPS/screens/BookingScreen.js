@@ -11,6 +11,7 @@ import { AuthContext } from '../context/AuthContext';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const BookingScreen = ({ navigation }) => {
+  const theme = lightTheme;
   const { user } = useContext(AuthContext);
   const [firstName, setFirstName] = useState('');
   const [MiddleName, setMiddleName] = useState('');
@@ -30,7 +31,7 @@ const BookingScreen = ({ navigation }) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: undefined,
       });
       if (!result.canceled) {
         setScreenshot(result.assets[0].uri);
@@ -202,6 +203,7 @@ const BookingScreen = ({ navigation }) => {
           onChangeText={setNotes}
         />
         <View style={styles.uploadContainer}>
+        <Text style={[styles.infoText, {color: theme.text}]}>Upload a screenshot (Optional):</Text>
           <TouchableOpacity style={[styles.imagePickerButton, { backgroundColor: lightTheme.primary }]} onPress={pickImage}>
             <Text style={styles.buttonText}>Upload Screenshot</Text>
           </TouchableOpacity>
@@ -238,7 +240,8 @@ const styles = StyleSheet.create({
   picker: { width: '90%', marginBottom: 20, borderRadius: 15 },
   datePickerButton: { padding: 10, borderRadius: 20, width: '60%', alignItems: 'center', marginBottom: 20 },
   imagePickerButton: { padding: 10, borderRadius: 20, width: '60%', alignItems: 'center', marginBottom: 20 },
-  uploadContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  uploadContainer: { alignItems: 'center', marginBottom: 20 },
+  infoText: { fontSize: 20, marginBottom: 10, textAlign: 'center', },
   screenshot: { width: 60, height: 60, marginLeft: 15, borderRadius: 10 },
   button: { padding: 15, borderRadius: 25, width: '80%', alignItems: 'center', marginBottom: 20 },
   buttonText: { color: 'white', fontSize: 18 },

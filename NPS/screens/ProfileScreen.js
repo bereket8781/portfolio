@@ -78,6 +78,9 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={28} color={theme.text} />
+        </TouchableOpacity>
         <Text style={[styles.title, { color: theme.text }]}>Profile</Text>
       </View>
 
@@ -150,12 +153,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    justifyContent: 'flex-start',
+    padding: 20,    
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    paddingLeft: 10,
+    flex: 1,
   },
   cardContainer: {
     flexGrow: 1,
