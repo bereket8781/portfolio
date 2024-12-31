@@ -8,19 +8,20 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [lastName, setLastName] = useState('');  // State for last name
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { register } = useAuth();
   const navigation = useNavigation();
 
   const handleRegister = async () => {
-    if (!email || !password || !username) {
+    if (!email || !password || !username || !lastName) {  // Check for last name as well
       setError('All fields are required');
       return;
     }
 
     setLoading(true);
-    const response = await register(email, password, username);
+    const response = await register(email, password, username);  // Add last name handling as needed in your auth context
     setLoading(false);
 
     if (response.success) {
@@ -30,7 +31,7 @@ const RegisterScreen = () => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Login'), // Redirect to Login screen
+            onPress: () => navigation.navigate('Login'),  // Redirect to Login screen
           },
         ]
       );
@@ -65,6 +66,13 @@ const RegisterScreen = () => {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+      />
+      <TextInput  // Last Name Input
+        style={[styles.input, { backgroundColor: lightTheme.secondary, color: lightTheme.text }]}
+        placeholder="Last Name"
+        placeholderTextColor="#888"
+        value={lastName}
+        onChangeText={setLastName}
       />
       <TouchableOpacity
         style={[styles.button, { backgroundColor: lightTheme.primary }]}
