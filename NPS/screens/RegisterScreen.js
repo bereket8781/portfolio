@@ -46,10 +46,17 @@ const RegisterScreen = () => {
       {error && <Text style={[styles.error, { color: 'red' }]}>{error}</Text>}
       <TextInput
         style={[styles.input, { backgroundColor: lightTheme.secondary, color: lightTheme.text }]}
-        placeholder="Username"
+        placeholder="First Name"
         placeholderTextColor="#888"
         value={username}
         onChangeText={setUsername}
+      />
+      <TextInput  // Last Name Input
+        style={[styles.input, { backgroundColor: lightTheme.secondary, color: lightTheme.text }]}
+        placeholder="Last Name"
+        placeholderTextColor="#888"
+        value={lastName}
+        onChangeText={setLastName}
       />
       <TextInput
         style={[styles.input, { backgroundColor: lightTheme.secondary, color: lightTheme.text }]}
@@ -66,14 +73,7 @@ const RegisterScreen = () => {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
-      />
-      <TextInput  // Last Name Input
-        style={[styles.input, { backgroundColor: lightTheme.secondary, color: lightTheme.text }]}
-        placeholder="Last Name"
-        placeholderTextColor="#888"
-        value={lastName}
-        onChangeText={setLastName}
-      />
+      />      
       <TouchableOpacity
         style={[styles.button, { backgroundColor: lightTheme.primary }]}
         onPress={handleRegister}

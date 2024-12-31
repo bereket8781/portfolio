@@ -202,14 +202,7 @@ const BookingScreen = ({ navigation }) => {
           value={notes}
           onChangeText={setNotes}
         />
-        <View style={styles.uploadContainer}>
-        <Text style={[styles.infoText, {color: theme.text}]}>Upload a screenshot (Optional):</Text>
-          <TouchableOpacity style={[styles.imagePickerButton, { backgroundColor: lightTheme.primary }]} onPress={pickImage}>
-            <Text style={styles.buttonText}>Upload Screenshot</Text>
-          </TouchableOpacity>
-          {screenshot && <Image source={{ uri: screenshot }} style={styles.screenshot} />}
-        </View>
-
+       
         <TouchableOpacity style={[styles.button, { backgroundColor: lightTheme.primary }]} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Submit Booking</Text>
         </TouchableOpacity>

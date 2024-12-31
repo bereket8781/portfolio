@@ -224,18 +224,6 @@ const RequestScreen = ({ navigation }) => {
           onChangeText={setNotes}
         />
 
-
-        <View style={styles.uploadContainer}>
-        <Text style={[styles.infoText, {color: theme.text}]}>Upload a screenshot (Optional):</Text>
-          <TouchableOpacity          
-            style={[styles.imagePickerButton, { backgroundColor: theme.primary }]}
-            onPress={pickImage}
-          >
-            <Text style={styles.buttonText}>Upload Screenshot</Text>
-          </TouchableOpacity>
-          {screenshot && <Image source={{ uri: screenshot }} style={styles.screenshot} />}
-        </View>
-
         <TouchableOpacity
           style={[styles.button, { backgroundColor: theme.primary }]}
           onPress={handleSubmit}
