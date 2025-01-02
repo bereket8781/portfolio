@@ -16,48 +16,46 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
-import { fetchActiveUsers, fetchMessages, sendMessage } from '../services/adminChatService';
+import { fetchMessages, sendMessage } from '../services/adminChatService';
+import { useRoute } from '@react-navigation/native'; // Added for route params
 import { CLOUDINARY_URL, CLOUDINARY_UPLOAD_PRESET } from '@env';
 
 const AdminChatScreen = ({ navigation }) => {
+  // const route = useRoute();
+  // const { userId, userName } = route.params || {}; // Extract parameters passed from the navigation
+
   const [message, setMessage] = useState('');
   const [imageUri, setImageUri] = useState(null);
-  const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    const loadActiveUsers = async () => {
-      try {
-        const usersList = await fetchActiveUsers();
-        setUsers(usersList);
-      } catch (error) {
-        console.error('Error fetching active users:', error);
+  
+    const route = useRoute();
+    const { userId, userName } = route.params || {}; // Get navigation params
+  
+    useEffect(() => {
+      if (userId) {
+        console.log('Navigated to AdminChatScreen with:', { userId, userName });
+        const unsubscribe = fetchMessages(userId, (fetchedMessages) => {
+          setMessages(
+            fetchedMessages.map((msg) => ({
+              ...msg,
+              message: msg.message || '',
+              imageUrl: msg.imageUrl || '',
+            }))
+          );
+        });
+        return unsubscribe;
+      } else {
+        console.warn('No userId provided');
       }
-    };
-    loadActiveUsers();
-  }, []);
+    }, [userId]);
+    
 
-  useEffect(() => {
-    if (activeUser) {
-      const unsubscribe = fetchMessages(activeUser.uid, (fetchedMessages) => {
-        console.log('Fetched Messages for Admin:', fetchedMessages);
-        const validatedMessages = fetchedMessages.map((msg) => ({
-          ...msg,
-          message: msg.message || '',
-          imageUrl: msg.imageUrl || '',
-        }));
-        setMessages(validatedMessages);
-      });
-      return unsubscribe;
-    }
-  }, [activeUser]);
 
   const uploadImageToCloudinary = async (uri) => {
-    console.log('Uploading to Cloudinary:', uri);
     const formData = new FormData();
     formData.append('file', {
       uri,
@@ -72,7 +70,6 @@ const AdminChatScreen = ({ navigation }) => {
         body: formData,
       });
       const data = await response.json();
-      console.log('Cloudinary Response:', data);
       if (data.secure_url) {
         return data.secure_url;
       } else {
@@ -93,17 +90,11 @@ const AdminChatScreen = ({ navigation }) => {
     if (!result.canceled && result.assets.length > 0) {
       const imageUri = result.assets[0].uri;
       setImageUri(imageUri);
-      console.log('Selected Image URI:', imageUri);
-    } else {
-      console.warn('Image selection canceled or invalid result:', result);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() && !imageUri) {
-      console.warn('Cannot send an empty message or image.');
-      return;
-    }
+    if (!message.trim() && !imageUri) return;
 
     setIsLoading(true);
     let uploadedImageUrl = '';
@@ -111,7 +102,6 @@ const AdminChatScreen = ({ navigation }) => {
     if (imageUri) {
       try {
         uploadedImageUrl = await uploadImageToCloudinary(imageUri);
-        console.log('Uploaded Image URL:', uploadedImageUrl);
       } catch (error) {
         setIsLoading(false);
         return;
@@ -119,16 +109,7 @@ const AdminChatScreen = ({ navigation }) => {
     }
 
     try {
-      console.log('Adding message:', {
-        senderId: 'admin',
-        recipientId: activeUser.uid,
-        message: message.trim(),
-        imageUrl: uploadedImageUrl,
-        timestamp: new Date(),
-      });
-
-      const success = await sendMessage(activeUser.uid, message.trim(), uploadedImageUrl);
-
+      const success = await sendMessage(userId, message.trim(), uploadedImageUrl);
       if (success) {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -147,7 +128,6 @@ const AdminChatScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error sending message:', error);
     }
-
     setIsLoading(false);
     Keyboard.dismiss();
   };
@@ -164,11 +144,11 @@ const AdminChatScreen = ({ navigation }) => {
         item.senderId === 'admin' ? styles.adminBubble : styles.userBubble,
       ]}
     >
-      <Image
-        source={{ uri: 'https://www.bing.com/images/search?q=iamge&FORM=IQFRBA&id=983EA16A8AF79F73D42E4C906F8828AFBC811FA5' }}
-        style={styles.imageStyle}
-        resizeMode="cover"
-      />
+      {item.imageUrl && (
+        <TouchableOpacity onPress={() => openImage(item.imageUrl)}>
+          <Image source={{ uri: item.imageUrl }} style={styles.imageStyle} />
+        </TouchableOpacity>
+      )}
       {item.message && <Text style={styles.messageText}>{item.message}</Text>}
     </View>
   );
@@ -176,15 +156,13 @@ const AdminChatScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => (activeUser ? setActiveUser(null) : navigation.goBack())}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {activeUser ? `Chat with ${activeUser.username}` : 'Admin Chat'}
-        </Text>
+        <Text style={styles.headerTitle}>Chat with {userName || 'User'}</Text>
       </View>
 
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
+      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <Image source={{ uri: selectedImage }} style={styles.fullScreenImage} />
           <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
@@ -193,58 +171,35 @@ const AdminChatScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {!activeUser ? (
+      <KeyboardAvoidingView style={styles.chatContainer} behavior="padding" keyboardVerticalOffset={80}>
         <FlatList
-          data={users}
-          keyExtractor={(item) => item.uid}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.userItem} onPress={() => setActiveUser(item)}>
-              <Text style={styles.userText}>{item.username}</Text>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.userList}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messageContainer}
+          inverted
         />
-      ) : (
-        <KeyboardAvoidingView style={styles.chatContainer} behavior="padding" keyboardVerticalOffset={80}>
-          <FlatList
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={renderMessage}
-            contentContainerStyle={styles.messageContainer}
-            inverted
+        <View style={styles.inputContainer}>
+          {imageUri && <Image source={{ uri: imageUri }} style={styles.selectedImagePreview} />}
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message..."
+            value={message}
+            onChangeText={setMessage}
+            onSubmitEditing={handleSendMessage}
           />
-          <View style={styles.inputContainer}>
-            {imageUri && (
-              <Image
-                source={{ uri: imageUri }}
-                style={styles.selectedImagePreview}
-                onError={(e) => console.error('Preview Image load error:', imageUri, e.nativeEvent.error)}
-              />
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Type a message..."
-              value={message}
-              onChangeText={setMessage}
-              onSubmitEditing={handleSendMessage}
-            />
-            <TouchableOpacity onPress={handlePickImage}>
-              <Icon name="image" size={28} color="#007aff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.sendButton, isLoading || (!message && !imageUri) ? { opacity: 0.5 } : {}]}
-              onPress={handleSendMessage}
-              disabled={isLoading || (!message && !imageUri)}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.sendButtonText}>Send</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      )}
+          <TouchableOpacity onPress={handlePickImage}>
+            <Icon name="image" size={28} color="#007aff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sendButton, isLoading || (!message && !imageUri) ? { opacity: 0.5 } : {}]}
+            onPress={handleSendMessage}
+            disabled={isLoading || (!message && !imageUri)}
+          >
+            {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.sendButtonText}>Send</Text>}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

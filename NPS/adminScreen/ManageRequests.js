@@ -1,60 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, Modal } from 'react-native';
-import { fetchRequests, updateRequestStatus, deleteRequest } from '../services/requestService'; // Ensure these are defined
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Image,
+  Modal
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { fetchRequests, updateRequestStatus, deleteRequest } from '../services/requestService';
+import { useNavigation } from '@react-navigation/native';
 
 const ManageRequestsScreen = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
+    const loadRequests = async () => {
+      setLoading(true);
+      try {
+        const result = await fetchRequests();
+        if (result.success) {
+          setRequests(result.requests.sort((a, b) => b.createdAt - a.createdAt));
+        } else {
+          Alert.alert('Error', result.msg || 'Failed to load requests.');
+        }
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
     loadRequests();
   }, []);
 
-  const loadRequests = async () => {
-    setLoading(true);
-    try {
-      const result = await fetchRequests();
-      if (result.success) {
-        // Ensure requests are sorted by the timestamp in descending order
-        const sortedRequests = result.requests.sort(
-          (a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis()
-        );
-        setRequests(sortedRequests);
-      } else {
-        Alert.alert('Error', result.msg || 'Failed to load requests.');
-      }
-    } catch (error) {
-      console.error('Error loading requests:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleUpdateStatus = async (id, newStatus) => {
-    if (newStatus === 'Declined') {
-      const result = await deleteRequest(id); // Automatically delete declined requests
-      if (result.success) {
-        Alert.alert('Success', 'Request Declined and Removed');
-        setRequests((prevRequests) => prevRequests.filter((request) => request.id !== id));
-      } else {
-        Alert.alert('Error', result.msg || 'Failed to decline request.');
-      }
+    const result = newStatus === 'Declined' ? await deleteRequest(id) : await updateRequestStatus(id, { status: newStatus });
+    if (result.success) {
+      Alert.alert('Success', `Request ${newStatus}.`);
+      setRequests(prev => prev.filter(req => req.id !== id));
     } else {
-      const result = await updateRequestStatus(id, { status: newStatus });
-      if (result.success) {
-        Alert.alert('Success', `Request ${newStatus}`);
-        setRequests((prevRequests) =>
-          prevRequests.map((request) =>
-            request.id === id ? { ...request, status: newStatus } : request
-          )
-        );
-      } else {
-        Alert.alert('Error', result.msg || 'Failed to update request status.');
-      }
+      Alert.alert('Error', result.msg || 'Failed to update request status.');
     }
   };
 
@@ -62,6 +55,17 @@ const ManageRequestsScreen = () => {
     setSelectedImage(imageUrl);
     setModalVisible(true);
   };
+
+  const handleChat = async (userId, userName) => {
+    try {
+      // Optionally, initiate the chat (e.g., create a message thread in Firestore if not already present)
+      navigation.navigate('AdminChatScreen', { userId, userName });
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      Alert.alert('Error', 'Failed to start chat. Please try again.');
+    }
+  };
+
 
   const renderRequestItem = ({ item }) => (
     <View style={styles.requestItem}>
@@ -79,6 +83,13 @@ const ManageRequestsScreen = () => {
         </TouchableOpacity>
       )}
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.chatButton]}
+          onPress={() => handleChat(item.userId, `${item.firstName} ${item.lastName}`)}
+        >
+          <Icon name="chat" size={24} color="#fff" />
+          <Text style={styles.buttonText}>Chat</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.approveButton]}
           onPress={() => handleUpdateStatus(item.id, 'Approved')}
@@ -197,8 +208,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-    width: '48%',
+    width: '30%',
     justifyContent: 'center',
+  },
+  chatButton: {
+    backgroundColor: '#007aff',
   },
   approveButton: {
     backgroundColor: '#4CAF50',

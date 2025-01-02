@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Image, TouchableOpacity, Modal } from 'react-native';
 import { fetchBookings, updateBooking, deleteBooking } from '../services/bookingService';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const ManageBookingsScreen = () => {
@@ -8,6 +9,7 @@ const ManageBookingsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadBookings();
@@ -32,7 +34,6 @@ const ManageBookingsScreen = () => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     if (newStatus === 'declined') {
-      // Remove the declined booking
       const result = await deleteBooking(id);
       if (result.success) {
         Alert.alert('Success', 'Booking declined and removed.');
@@ -41,7 +42,6 @@ const ManageBookingsScreen = () => {
         Alert.alert('Error', result.msg || 'Failed to decline booking.');
       }
     } else {
-      // Update the booking status
       const result = await updateBooking(id, { status: newStatus });
       if (result.success) {
         Alert.alert('Success', `Booking ${newStatus}.`);
@@ -61,6 +61,10 @@ const ManageBookingsScreen = () => {
     setModalVisible(true);
   };
 
+  const handleChat = (userId, userName) => {
+    navigation.navigate('AdminChatScreen', { userId, userName });
+  };
+
   const renderBookingItem = ({ item }) => (
     <View style={styles.bookingItem}>
       <Text style={styles.bookingText}>First Name: {item.firstName}</Text>
@@ -78,6 +82,13 @@ const ManageBookingsScreen = () => {
       )}
       <Text style={styles.statusText}>Status: {item.status || 'Pending'}</Text>
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.chatButton]}
+          onPress={() => handleChat(item.userId, `${item.firstName} ${item.lastName}`)}
+        >
+          <Icon name="chat" size={24} color="#fff" />
+          <Text style={styles.buttonText}>Chat</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.acceptButton]}
           onPress={() => handleUpdateStatus(item.id, 'accepted')}
@@ -192,8 +203,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-    width: '48%',
+    width: '30%',
     justifyContent: 'center',
+  },
+  chatButton: {
+    backgroundColor: '#007aff',
   },
   acceptButton: {
     backgroundColor: '#4CAF50',

@@ -99,13 +99,13 @@ const ProfileScreen = () => {
           {/* Last Booking Status */}
           <View style={styles.card}>
             <Icon name="event" size={28} color={theme.primary} />
-            <Text style={styles.info}>Last Booking Status: {lastBookingStatus}</Text>
+            <Text style={styles.info}>Booking Status: {lastBookingStatus}</Text>
           </View>
 
           {/* Last Request Status */}
           <View style={styles.card}>
             <Icon name="request-quote" size={28} color={theme.primary} />
-            <Text style={styles.info}>Last Request Status: {lastRequestStatus}</Text>
+            <Text style={styles.info}>Request Status: {lastRequestStatus}</Text>
           </View>
 
           <TouchableOpacity

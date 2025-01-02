@@ -100,7 +100,7 @@ const RequestScreen = ({ navigation }) => {
     try {
       const response = await saveRequest(user.uid, requestDetails);
       if (response.success) {
-        Alert.alert('Success', 'Request Submitted Successfully Check status on your profile');
+        Alert.alert('Success', 'Request Submitted Successfully! Check status on your profile');
         setFirstName('');
         setMiddleName('')
         setLastName('');
